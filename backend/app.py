@@ -9,32 +9,40 @@ def getMysqlConnection():
     return mysql.connector.connect(user='root', host='db', port='3306', password='root', database='city')
 
 
-def query_result(query):
+def query_result(query, method):
     db = getMysqlConnection()
     cur = db.cursor()
     cur.execute(query)
-    return cur
+    if method:
+        data = cur.fetchall()
+        return data
+    else:
+        return None
 
 
 @app.route('/getCity', methods=['GET'])
 def get_city():
     query = "SELECT * from cities"
-    cur = query_result(query)
-    data = cur.fetchall()
-    result = []
-    for item in data:
-        result.append({
-            'Sell': item[0],
-            'List': item[1],
-            'Living': item[2],
-            'Rooms': item[3],
-            'Beds': item[4],
-            'Baths': item[5],
-            'Age': item[6],
-            'Acres': item[7],
-            'Taxes': item[8]
-        })
-    return json.dumps(result)
+    try:
+        data = query_result(query, True)
+        # data = cur.fetchall()
+        result = []
+        for item in data:
+            result.append({
+                'Sell': item[0],
+                'List': item[1],
+                'Living': item[2],
+                'Rooms': item[3],
+                'Beds': item[4],
+                'Baths': item[5],
+                'Age': item[6],
+                'Acres': item[7],
+                'Taxes': item[8]
+            })
+        return json.dumps(result)
+    except Exception as e:
+        print(e)
+        return jsonify({'caught': False})
 
 
 @app.route('/addCity', methods=['POST'])
@@ -43,7 +51,7 @@ def add_city():
              (Sell, List, Living, Rooms, Beds, Baths, Age, Acres, Taxes) \
              VALUES (142, 160, 28, 10, 5, 3, 60, 0.28, 3167);"
     try:
-        query_result(query)
+        query_result(query, False)
         return jsonify({"added": True})
     except Exception as e:
         print(e)
@@ -56,7 +64,7 @@ def modify_city():
              SET Sell=150 \
              WHERE List = 160;"
     try:
-        query_result(query)
+        query_result(query, False)
         return jsonify({"updated": True})
     except Exception as e:
         print(e)
@@ -65,9 +73,9 @@ def modify_city():
 
 @app.route('/deleteCity', methods=['DELETE'])
 def delete_city():
-    query = "DELETE FROM Customers WHERE Sell=150;"
+    query = "DELETE FROM cities WHERE Sell=150;"
     try:
-        query_result(query)
+        query_result(query, False)
         return jsonify({"deleted": True})
     except Exception as e:
         print(e)
