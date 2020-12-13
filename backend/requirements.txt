@@ -1,0 +1,4 @@
+mysqlclient==2.0.1
+mysql-connector-python==8.0.20
+flask==1.1.1
+json-encoder==0.4.4
