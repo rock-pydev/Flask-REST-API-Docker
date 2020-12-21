@@ -1,6 +1,7 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import mysql.connector
 from json_encoder import json
+import statistics
 
 app = Flask(__name__)
 
@@ -19,6 +20,21 @@ def query_result(query, method):
     else:
         return None
 
+def statistics_values():
+    query = 'SELECT Sell from cities'
+    try:
+        data = query_result(query, True)
+        return {
+            'mean': mean(data),
+            'fmean': fmean(data),
+            'geometric_mean': geometric_mean(data),
+            'median': median(data),
+            'median_low': median_low(data),
+            'median_high': median_high(data),
+            'median_grouped': median_grouped(data)
+        }
+    except Exception as e:
+        return None
 
 @app.route('/getCity', methods=['GET'])
 def get_city():
@@ -81,6 +97,20 @@ def delete_city():
         print(e)
         return jsonify({"deleted": False})
 
+
+@app.route('/statistics')
+def statistics():
+    return statistics_values()
+
+@app.route('/')
+@app.route('/login')
+def login():
+    return render_template('auth/login.html', current_user=None)
+
+@app.route('/dashboard')
+def dashboard():
+    stat_vals = statistics_values()
+    return render_template('home/index.html', stat_vals=stat_vals, current_user=None)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
